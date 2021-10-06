@@ -98,7 +98,7 @@ class ExaJobThread(QObject):
 				while not cmd_complete:
 					if self.p.waitForFinished(msecs=500):
 						cmd_complete = True
-
+					QApplication.processEvents()
 				self.log.info("Bench Done")
 			self.exatron.unload_part()
 			if self.abort_request:
