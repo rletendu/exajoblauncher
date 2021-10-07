@@ -1,5 +1,7 @@
 # Referece one : https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
 
+*.log
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
