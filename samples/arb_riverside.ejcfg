@@ -1,0 +1,11 @@
+[EXAJOB]
+cmdline = C:\_work\tools_dev\tool_arb_tester\arb_tester\release\arb_tester.exe --fixed_temperature={temperature} --part_id={part} --test_root_path=C:\_work\polaris\riverside_atomictests_master\icd_dsu_u2810\_arb\ --instruments_file=C:\_work\polaris\riverside_atomictests_master\_common\utils\arb\local_instruments_nto.xlsx --bench_config=C:\_work\polaris\riverside_atomictests_master\_common\utils\arb\arb_bench_nto_prod.xlsm --demo
+parts = 1, 2
+temperatures = 25
+exatron_interface = demo
+exatron_tcp_port = 4000
+temp_soak_time = 6
+temp_accuracy = 2.0
+offset_list = [(-40, -40), (0, 0), (25, 27), (85, 85), (105, 105), (125, 125)]
+log_file_folder = C:/Users/M43356/Desktop
+

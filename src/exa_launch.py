@@ -27,6 +27,12 @@ import revision
 LOGGING_FORMAT = '%(asctime)s :: %(levelname)s :: %(name)s :: %(lineno)d :: %(funcName)s :: %(message)s'
 GUI_CONFIG_FILE = "exa_launch.ini"
 
+#exceptions from an event handler is not supported in Qt.
+#You must not let any exception whatsoever propagate through Qt code.
+#If that is not possible, in Qt 5 you must at least reimplement
+#QCoreApplication::notify() and catch all exceptions there.
+
+
 def excepthook(exc_type, exc_value, exc_tb):
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
     print("error catched!:")
@@ -149,8 +155,7 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
             self.interfaceBox.addItem(com.device)
             break
         self.interfaceBox.addItem("demo")
-        self.abortButton.setEnabled(False)
-        self.startButton.setEnabled(False)
+
         self.statusbar.showMessage('Select an Exatron Interface')
 
         self.progressPanel = Progress_Window(msg="Waiting Handler Connection", parent=self.window())
@@ -223,7 +228,7 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
 
     @pyqtSlot()
     def menuOpen(self):
-        self.filename, s = QFileDialog.getOpenFileName(self, "Select Exajob file...")
+        self.filename, s = QFileDialog.getOpenFileName(self, "Select Exajob file...",'', "ExaLaunch Files (*.ejcfg);;All Files (*)")
         self.options.read(self.filename)
         self.options2gui()
         self.setWindowTitle(self.filename)
@@ -235,7 +240,7 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
             self.menuSaveAs()
     @pyqtSlot()
     def menuSaveAs(self):
-        self.filename, filter = QFileDialog.getSaveFileName(self, 'Save File')
+        self.filename, filter = QFileDialog.getSaveFileName(self, 'Save File','', "ExaLaunch Files (*.ejcfg);;All Files (*)")
         self.save(self.filename)
 
     def save(self, f):
