@@ -329,8 +329,15 @@
     <addaction name="actionsettings"/>
     <addaction name="actionmanual_ctrl"/>
    </widget>
+   <widget class="QMenu" name="menuhelp">
+    <property name="title">
+     <string>help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuoptions"/>
+   <addaction name="menuhelp"/>
   </widget>
   <action name="actionGogo">
    <property name="text">
@@ -365,6 +372,11 @@
   <action name="actionmanual_ctrl">
    <property name="text">
     <string>manual_ctrl</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

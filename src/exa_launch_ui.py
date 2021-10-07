@@ -163,6 +163,8 @@ class Ui_ExaJobLauncher(object):
         self.menuFile.setObjectName("menuFile")
         self.menuoptions = QtWidgets.QMenu(self.menuBar)
         self.menuoptions.setObjectName("menuoptions")
+        self.menuhelp = QtWidgets.QMenu(self.menuBar)
+        self.menuhelp.setObjectName("menuhelp")
         ExaJobLauncher.setMenuBar(self.menuBar)
         self.actionGogo = QtWidgets.QAction(ExaJobLauncher)
         self.actionGogo.setObjectName("actionGogo")
@@ -178,6 +180,8 @@ class Ui_ExaJobLauncher(object):
         self.actionsettings.setObjectName("actionsettings")
         self.actionmanual_ctrl = QtWidgets.QAction(ExaJobLauncher)
         self.actionmanual_ctrl.setObjectName("actionmanual_ctrl")
+        self.actionAbout = QtWidgets.QAction(ExaJobLauncher)
+        self.actionAbout.setObjectName("actionAbout")
         self.menuFile.addAction(self.actionopen)
         self.menuFile.addAction(self.actionsave)
         self.menuFile.addAction(self.actionSave_As)
@@ -185,8 +189,10 @@ class Ui_ExaJobLauncher(object):
         self.menuoptions.addAction(self.actiondebug)
         self.menuoptions.addAction(self.actionsettings)
         self.menuoptions.addAction(self.actionmanual_ctrl)
+        self.menuhelp.addAction(self.actionAbout)
         self.menuBar.addAction(self.menuFile.menuAction())
         self.menuBar.addAction(self.menuoptions.menuAction())
+        self.menuBar.addAction(self.menuhelp.menuAction())
 
         self.retranslateUi(ExaJobLauncher)
         QtCore.QMetaObject.connectSlotsByName(ExaJobLauncher)
@@ -212,6 +218,7 @@ class Ui_ExaJobLauncher(object):
         self.cur_part.setText(_translate("ExaJobLauncher", "10"))
         self.menuFile.setTitle(_translate("ExaJobLauncher", "File"))
         self.menuoptions.setTitle(_translate("ExaJobLauncher", "options"))
+        self.menuhelp.setTitle(_translate("ExaJobLauncher", "help"))
         self.actionGogo.setText(_translate("ExaJobLauncher", "gogo"))
         self.actionopen.setText(_translate("ExaJobLauncher", "Open Ctrl-O"))
         self.actionsave.setText(_translate("ExaJobLauncher", "Save Ctl-S"))
@@ -219,6 +226,7 @@ class Ui_ExaJobLauncher(object):
         self.actionSave_As.setText(_translate("ExaJobLauncher", "Save As"))
         self.actionsettings.setText(_translate("ExaJobLauncher", "settings"))
         self.actionmanual_ctrl.setText(_translate("ExaJobLauncher", "manual_ctrl"))
+        self.actionAbout.setText(_translate("ExaJobLauncher", "About"))
 
 
 if __name__ == "__main__":

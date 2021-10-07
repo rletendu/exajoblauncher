@@ -56,6 +56,30 @@ class OptionsDialog(QDialog):
         self.popup.tableTemp.resizeRowsToContents()
         self.popup.tableTemp.resizeColumnsToContents()
 
+    def fillUserVarTable(self,user_var):
+        nb_var = len(user_var)
+        self.popup.tableVar.setRowCount(nb_var)
+        self.popup.tableVar.setColumnCount(2)
+
+        row = 0
+        for var in user_var:
+            v = QtWidgets.QTableWidgetItem(var)
+            self.popup.tableVar.setItem(row, 0, QtWidgets.QTableWidgetItem(v))
+            v = QtWidgets.QTableWidgetItem(user_var[var])
+            self.popup.tableVar.setItem(row, 1, v)
+            row += 1
+        self.popup.tableVar.resizeRowsToContents()
+        self.popup.tableVar.resizeColumnsToContents()
+
+    def readUserVarTable(self):
+        d = {}
+        nb_var = self.popup.tableVar.rowCount()
+        for row in range(nb_var):
+            var = self.popup.tableVar.item(row,0).text()
+            val = self.popup.tableVar.item(row,1).text()
+            d[var] = val
+        return d
+
     def readOffsetTable(self):
         l = []
         nb_temp = self.popup.tableTemp.columnCount()
@@ -74,6 +98,15 @@ class OptionsDialog(QDialog):
             self.popup.tableTemp.setItem(0,col, QtWidgets.QTableWidgetItem(v))
             v = QtWidgets.QTableWidgetItem(str(l[col]))
             self.popup.tableTemp.setItem(1,col, v)
+
+    @pyqtSlot()
+    def on_pushButtonAddVar_clicked(self):
+        self.popup.tableVar.insertRow(self.popup.tableVar.rowCount())
+
+    @pyqtSlot()
+    def on_pushButtonDelVar_clicked(self):
+        self.popup.tableVar.removeRow(self.popup.tableVar.currentRow())
+
 
     @pyqtSlot()
     def on_pushButtonLogFilesFolder_clicked(self):

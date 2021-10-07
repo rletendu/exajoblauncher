@@ -116,6 +116,7 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
         self.tempOffset =[]
         for t in [-40,0,25,85,105,125]:
             self.tempOffset.append((t,t))
+        self.userVar = {}
         self.logFolder = os.getcwd()
         self.options = configparser.ConfigParser()
         self.load_ini_file()
@@ -138,6 +139,7 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
         self.actionSave_As.triggered.connect(self.menuSaveAs)
         self.actiondebug.setCheckable(True)
         self.actiondebug.triggered.connect(self.debug_enable)
+        self.actionAbout.triggered.connect(self.menuAbout)
         self.saveSc = QShortcut(QKeySequence('Ctrl+S'), self)
         self.saveSc.activated.connect(self.menuSave)
         self.openSc = QShortcut(QKeySequence('Ctrl+O'), self)
@@ -214,8 +216,19 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
             logging.getLogger().setLevel(logging.ERROR)
 
     @pyqtSlot()
+    def menuAbout(self):
+        msgBox = QMessageBox()
+        msgBox.setIcon(QMessageBox.Information)
+        msgBox.setText('ExaJobLauncher V{}.{} built {}'.format(revision.REVISION, revision.BUILD, revision.BUILD_DATE))
+        msgBox.setWindowTitle("About")
+        msgBox.setStandardButtons(QMessageBox.Ok)
+        returnValue = msgBox.exec()
+
+
+    @pyqtSlot()
     def menuSettings(self):
         self.settingsPanel.fillOffsetTable(self.tempOffset)
+        self.settingsPanel.fillUserVarTable(self.userVar)
         if self.logFolder:
             self.settingsPanel.popup.lineEditLogFilesFolder.setText(self.logFolder)
         self.settingsPanel.show()
@@ -250,6 +263,7 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
         self.setWindowTitle(self.filename)
 
     def gui2options(self):
+        self.options = configparser.ConfigParser()
         self.options["EXAJOB"] = {
             'cmdline':self.cmdLineEdit.text(),
             'parts':self.partsEdit.text(),
@@ -260,6 +274,9 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
             'offset_list' : str(self.tempOffset),
             'log_file_folder': str(self.logFolder),
         }
+        self.options.add_section("USERVAR")
+        for v in self.userVar:
+            self.options["USERVAR"][v] =self.userVar[v]
 
     def options2gui(self):
         self.partsEdit.setText( self.options["EXAJOB"]["parts"])
@@ -271,6 +288,8 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
         self.tempAccuracySpinBox.setValue(float(self.options["EXAJOB"]["temp_accuracy"]))
         self.tempOffset = eval(self.options["EXAJOB"]["offset_list"])
         self.logFolder = self.options["EXAJOB"]['log_file_folder']
+        for v in self.options["USERVAR"]:
+            self.userVar[v] = self.options["USERVAR"][v]
 
     def closeEvent(self, event):
         result = QMessageBox.question(self, "Confirm Exit...", "Are you sure you want to exit ?", QMessageBox.Yes | QMessageBox.No)
@@ -318,6 +337,7 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
     @pyqtSlot()
     def setttingsOk(self):
         self.tempOffset = self.settingsPanel.readOffsetTable()
+        self.userVar = self.settingsPanel.readUserVarTable()
         self.logFolder = self.settingsPanel.popup.lineEditLogFilesFolder.text()
         self.settingsPanel.close()
 
@@ -376,7 +396,7 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
             if self.exatron.get_state() == ExatronState.READY:
                 self.progressPanel.close()
                 print('Starting Exatron job with parts : {} over temperature {}'.format(self.part_list, self.temp_list))
-                self.sig_job.start_suite.emit(self.temp_list, self.part_list, self.cmd, self.tempOffset)
+                self.sig_job.start_suite.emit(self.temp_list, self.part_list, self.cmd, self.tempOffset, self.userVar)
                 self.state = testerState.WORKING
                 self.abortButton.setEnabled(True)
                 self.startButton.setEnabled(False)

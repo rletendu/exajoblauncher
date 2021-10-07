@@ -12,7 +12,7 @@ class ExaJobSignals(QObject):
 	"""
 	User defined signals to connect independent measure Thread to gui
 	"""
-	start_suite = pyqtSignal(list,list,str, list)
+	start_suite = pyqtSignal(list,list,str, list, dict)
 	abort_suite = pyqtSignal()
 	pause_suite = pyqtSignal()
 	notify_progress = pyqtSignal(str, int, int)
@@ -41,14 +41,15 @@ class ExaJobThread(QObject):
 		self.temp_soak = temp_soak
 		self.progress = Progress_Window("msg")
 
-	@pyqtSlot(list, list, str, list)
-	def run(self, temp_list, part_list, cmd, temp_offset):
+	@pyqtSlot(list, list, str, list, dict)
+	def run(self, temp_list, part_list, cmd, temp_offset, user_var):
 		self.part_list = part_list
 		self.temp_list = temp_list
 		self.cmd = cmd
 		self.abort_request = False
 		self.suspended = False
 		self.temp_offset_list = temp_offset
+		self.userVar = user_var
 		for part in self.part_list:
 			if self.abort_request:
 				break
@@ -89,6 +90,8 @@ class ExaJobThread(QObject):
 					break
 				self.log.info("Running Bench with part {} at {}°C".format(part, temperature))
 				exec_cmd = self.cmd.replace('{temperature}', str(temperature)).replace('{part}',str(part))
+				for var in self.userVar:
+					exec_cmd = exec_cmd.replace("{{{}}}".format(var),self.userVar[var])
 				self.sig.notify_progress.emit("Running {}".format(exec_cmd), part, temperature)
 				print("Starting bench {}".format(exec_cmd))
 				self.job = QProcess()
