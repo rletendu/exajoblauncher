@@ -17,6 +17,7 @@ class ExaJobSignals(QObject):
 	pause_suite = pyqtSignal()
 	notify_progress = pyqtSignal(str, int, int)
 
+
 	all_done = pyqtSignal()
 
 
@@ -61,33 +62,36 @@ class ExaJobThread(QObject):
 				break
 			for temperature in self.temp_list:
 				self.sig.notify_progress.emit('', part, temperature)
-				print('Set Working temperature to : {}'.format(temperature))
-				temp_offset = temperature
-				for t in self.temp_offset_list:
-					if t[0] == temperature:
-						temp_offset = t[1]
-						print("Using {} as offset temperature for {}".format(temp_offset, temperature))
-				self.exatron.set_temperature(temp_offset)
-				while True:
-					t = self.exatron.get_temperature()
-					self.sig.notify_progress.emit('Temperature is {} versus {}'.format(t,temp_offset), part, temperature)
-					if abs( t - temp_offset ) < self.temp_accuracy:
-						break
+				if temperature == 255:
+					print('Detected 255 magic temperature : Skipping temperature control'.format(temperature))
+				else:
+					print('Set Working temperature to : {}'.format(temperature))
+					temp_offset = temperature
+					for t in self.temp_offset_list:
+						if t[0] == temperature:
+							temp_offset = t[1]
+							print("Using {} as offset temperature for {}".format(temp_offset, temperature))
+					self.exatron.set_temperature(temp_offset)
+					while True:
+						t = self.exatron.get_temperature()
+						self.sig.notify_progress.emit('Temperature is {} versus {}'.format(t,temp_offset), part, temperature)
+						if abs( t - temp_offset ) < self.temp_accuracy:
+							break
+						if self.abort_request:
+							break
+						time.sleep(5)
 					if self.abort_request:
 						break
-					time.sleep(5)
-				if self.abort_request:
-					break
-				self.sig.notify_progress.emit("Waiting {}s soak time...".format(self.temp_soak), part, temperature)
-				end_soak_time = time.time() + self.temp_soak
-				while time.time() < end_soak_time:
+					self.sig.notify_progress.emit("Waiting {}s soak time...".format(self.temp_soak), part, temperature)
+					end_soak_time = time.time() + self.temp_soak
+					while time.time() < end_soak_time:
+						if self.abort_request:
+							break
+						time.sleep(5)
+						remaining_soak = int(end_soak_time-time.time())
+						self.sig.notify_progress.emit("Waiting {}s soak time...".format(remaining_soak), part, temperature)
 					if self.abort_request:
 						break
-					time.sleep(5)
-					remaining_soak = int(end_soak_time-time.time())
-					self.sig.notify_progress.emit("Waiting {}s soak time...".format(remaining_soak), part, temperature)
-				if self.abort_request:
-					break
 				self.log.info("Running Bench with part {} at {}°C".format(part, temperature))
 				exec_cmd = self.cmd.replace('{temperature}', str(temperature)).replace('{part}',str(part))
 				for var in self.userVar:
@@ -95,7 +99,7 @@ class ExaJobThread(QObject):
 				self.sig.notify_progress.emit("Running {}".format(exec_cmd), part, temperature)
 				print("Starting bench {}".format(exec_cmd))
 				self.job = QProcess()
-				self.job.finished.connect(self.process_finished)
+				#self.job.finished.connect(self.process_finished)
 				self.job.readyReadStandardOutput.connect(self.handle_stdout)
 				self.job.start(exec_cmd)
 				self.cmd_complete = False
@@ -111,10 +115,14 @@ class ExaJobThread(QObject):
 		self.log.info("Setting temp to room before EOL")
 		self.exatron.set_temperature(25)
 		self.exatron.end_of_lot()
-		self.sig.notify_progress.emit('End of Lot', part, temperature)
-		self.sig.all_done.emit()
+		#self.sig.notify_progress.emit('End of Lot', part, temperature)
+		QApplication.processEvents()
+		time.sleep(0.5)
 		print("--- LOT COMPLETE ---")
-		time.sleep(2)
+		sys.stdout.flush()
+		self.sig.all_done.emit()
+		QApplication.processEvents()
+		time.sleep(0.5)
 
 
 	@pyqtSlot(int)
@@ -126,11 +134,10 @@ class ExaJobThread(QObject):
 		rx = self.job.readAllStandardOutput()
 		try:
 			d = bytes(rx).decode()
-			print(d)
+			print(d.replace("\r\n", "\n"))
 		except UnicodeDecodeError:
 			print(rx)
-
-		sys.stdout.flush()
+		#sys.stdout.flush()
 
 
 	@pyqtSlot()

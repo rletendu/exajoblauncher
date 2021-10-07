@@ -165,6 +165,7 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
         self.state = testerState.IDLE
         self.flagNewJob = False
         self.logFile = None
+        self.logPartFile = None
 
     @pyqtSlot(QtWidgets.QAction)
     def handle_triggered_recentfile(self, action):
@@ -343,6 +344,8 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
 
     @pyqtSlot()
     def startJob(self):
+        self.part = None
+        self.temp = None
         self.abortButton.setEnabled(True)
         self.startButton.setEnabled(False)
         self.part_list = self.partsEdit.text().replace(" ","").split(",")
@@ -363,12 +366,22 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
 
     @pyqtSlot(str, int, int)
     def notify_progress(self, text, part, temp):
-        self.cur_part.setText("Curent Part: {}".format(part))
         self.cur_temp.setText("Curent Temp: {}".format(temp))
+        self.cur_part.setText("Curent Part: {}".format(part))
+        if self.part != part:
+            now = datetime.now()
+            dt_string = now.strftime("%Y%m%d_%H%M%S")
+            filename = "ExaLaunch_{}_part_{}.log".format(dt_string,part)
+            if self.logPartFile:
+                self.logPartFile.close()
+            f = os.path.join(self.logFolder, filename)
+            self.logPartFile = open(f, "a")
         self.tempProgressBar.setValue(int(100*((self.temp_list.index(temp)+1)/len(self.temp_list))))
         self.partProgressBar.setValue(int(100*((self.part_list.index(part)+1)/len(self.part_list))))
         if len(text):
             self.statusbar.showMessage(text)
+        self.part = part
+        self.temp = temp
 
     @pyqtSlot()
     def testerTick(self):
@@ -416,16 +429,20 @@ class MainWindow(QMainWindow, Ui_ExaJobLauncher):
         self.startButton.setEnabled(True)
         self.state = testerState.WAIT_NEW_JOB_START
         if self.logFile:
-            pass
             self.logFile.flush()
+        if self.logPartFile:
+            self.logPartFile.flush()
 
     @pyqtSlot(str)
     def append_log(self, text):
         self.logBrowser.moveCursor(QTextCursor.End)
         self.logBrowser.insertPlainText(text)
         if self.logFile:
-            pass
             self.logFile.write(text)
+        if self.logPartFile:
+            pass
+            self.logPartFile.write(text)
+
 
 
 if __name__ == '__main__':
