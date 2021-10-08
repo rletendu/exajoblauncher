@@ -284,7 +284,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit">
+      <widget class="QLineEdit" name="lineEditGlobalFile">
        <property name="text">
         <string>ExaJob_{date}_{time}.log</string>
        </property>
@@ -298,7 +298,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_2">
+      <widget class="QLineEdit" name="lineEditPartFile">
        <property name="text">
         <string>ExaJob_{date}_{time}_{part}.log</string>
        </property>
