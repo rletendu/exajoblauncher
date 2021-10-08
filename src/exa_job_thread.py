@@ -62,36 +62,9 @@ class ExaJobThread(QObject):
 				break
 			for temperature in self.temp_list:
 				self.sig.notify_progress.emit('', part, temperature)
-				if temperature == 255:
-					print('Detected 255 magic temperature : Skipping temperature control'.format(temperature))
-				else:
-					print('Set Working temperature to : {}'.format(temperature))
-					temp_offset = temperature
-					for t in self.temp_offset_list:
-						if t[0] == temperature:
-							temp_offset = t[1]
-							print("Using {} as offset temperature for {}".format(temp_offset, temperature))
-					self.exatron.set_temperature(temp_offset)
-					while True:
-						t = self.exatron.get_temperature()
-						self.sig.notify_progress.emit('Temperature is {} versus {}'.format(t,temp_offset), part, temperature)
-						if abs( t - temp_offset ) < self.temp_accuracy:
-							break
-						if self.abort_request:
-							break
-						time.sleep(5)
-					if self.abort_request:
-						break
-					self.sig.notify_progress.emit("Waiting {}s soak time...".format(self.temp_soak), part, temperature)
-					end_soak_time = time.time() + self.temp_soak
-					while time.time() < end_soak_time:
-						if self.abort_request:
-							break
-						time.sleep(5)
-						remaining_soak = int(end_soak_time-time.time())
-						self.sig.notify_progress.emit("Waiting {}s soak time...".format(remaining_soak), part, temperature)
-					if self.abort_request:
-						break
+				self.setOperatingTemperature(temperature)
+				if self.abort_request:
+					break
 				self.log.info("Running Bench with part {} at {}°C".format(part, temperature))
 				exec_cmd = self.cmd.replace('{temperature}', str(temperature)).replace('{part}',str(part))
 				for var in self.userVar:
@@ -123,6 +96,36 @@ class ExaJobThread(QObject):
 		self.sig.all_done.emit()
 		QApplication.processEvents()
 		time.sleep(0.5)
+
+	def setOperatingTemperature(self, temperature):
+		if temperature == 255:
+			print('Detected 255 magic temperature : Skipping temperature control'.format(temperature))
+		else:
+			print('Set Working temperature to : {}'.format(temperature))
+			temp_offset = temperature
+			for t in self.temp_offset_list:
+				if t[0] == temperature:
+					temp_offset = t[1]
+					print("Using {} as offset temperature for {}".format(temp_offset, temperature))
+			self.exatron.set_temperature(temp_offset)
+			while True:
+				t = self.exatron.get_temperature()
+				self.sig.notify_progress.emit('Temperature is {} versus {}'.format(t,temp_offset), part, temperature)
+				if abs( t - temp_offset ) < self.temp_accuracy:
+					break
+				if self.abort_request:
+					return
+				time.sleep(5)
+			if self.abort_request:
+				return
+			self.sig.notify_progress.emit("Waiting {}s soak time...".format(self.temp_soak), part, temperature)
+			end_soak_time = time.time() + self.temp_soak
+			while time.time() < end_soak_time:
+				if self.abort_request:
+					return
+				time.sleep(5)
+				remaining_soak = int(end_soak_time-time.time())
+				self.sig.notify_progress.emit("Waiting {}s soak time...".format(remaining_soak), part, temperature)
 
 
 	@pyqtSlot(int)
